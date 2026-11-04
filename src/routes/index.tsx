@@ -12,7 +12,6 @@ import {
   useTarefas,
   type Tarefa,
 } from "@/hooks/use-tarefas";
-import { TaskItem } from "@/components/tasks/TaskItem";
 import type { TaskStatus } from "@/lib/tasks";
 import { createFileRoute } from "@tanstack/react-router";
 

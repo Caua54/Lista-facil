@@ -7,6 +7,7 @@ import {
   TAREFA_DESCRICAO_MAX,
   TAREFA_TITULO_MAX,
   validateTask,
+  type FieldErrors,
 } from "@/lib/tasks";
 
 export type TaskFormValues = { titulo: string; descricao: string };
@@ -32,7 +33,7 @@ export function TaskForm({
   onCancel,
 }: TaskFormProps) {
   const [values, setValues] = useState<TaskFormValues>(initialValues);
-  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
   const setField = (field: keyof TaskFormValues, value: string) => {
