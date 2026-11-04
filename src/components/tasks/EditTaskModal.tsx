@@ -29,7 +29,9 @@ export function EditTaskModal({ tarefa, onClose }: EditTaskModalProps) {
         <DialogHeader>
           <DialogTitle>Editar tarefa</DialogTitle>
           <DialogDescription>
-            Atualize o título e a descrição da tarefa #{tarefa?.id}.
+            {tarefa
+              ? `Atualize o título e a descrição da tarefa #${tarefa.id}.`
+              : "Atualize o título e a descrição da tarefa."}
           </DialogDescription>
         </DialogHeader>
         {tarefa ? (
