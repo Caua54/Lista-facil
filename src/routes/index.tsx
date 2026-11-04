@@ -7,10 +7,12 @@ import { TaskForm } from "@/components/tasks/TaskForm";
 import { TaskItem } from "@/components/tasks/TaskItem";
 import { TaskList } from "@/components/tasks/TaskList";
 import {
+  tarefasQueryOptions,
   useTarefaMutations,
   useTarefas,
   type Tarefa,
 } from "@/hooks/use-tarefas";
+import { TaskItem } from "@/components/tasks/TaskItem";
 import type { TaskStatus } from "@/lib/tasks";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -38,8 +40,6 @@ export const Route = createFileRoute("/")({
   errorComponent: TaskErrorComponent,
   component: Index,
 });
-
-import { tarefasQueryOptions } from "@/hooks/use-tarefas";
 
 function TaskErrorComponent() {
   return (
@@ -153,6 +153,3 @@ function Index() {
     </Suspense>
   );
 }
-
-// Re-exported so the item page keeps a single source for status logic.
-export { TaskItem };
