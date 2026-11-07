@@ -10,6 +10,7 @@ import {
   STATUS_PENDENTE,
   createTarefa,
   deleteTarefa,
+  deleteTarefasConcluidas,
   fetchTarefas,
   updateTarefa,
   type TaskInput,
