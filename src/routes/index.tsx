@@ -1,6 +1,19 @@
 import { Suspense, useState } from "react";
-import { Plus } from "lucide-react";
+import { Eraser, Plus, Search } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditTaskModal } from "@/components/tasks/EditTaskModal";
 import { TaskForm } from "@/components/tasks/TaskForm";
@@ -74,13 +87,37 @@ function TaskListSkeleton() {
   );
 }
 
+type FiltroStatus = "todas" | "pendentes" | "concluidas";
+
+const FILTROS: { valor: FiltroStatus; rotulo: string }[] = [
+  { valor: "todas", rotulo: "Todas" },
+  { valor: "pendentes", rotulo: "Pendentes" },
+  { valor: "concluidas", rotulo: "Concluídas" },
+];
+
 function IndexContent() {
   const { data: tarefas } = useTarefas();
-  const { add, toggle, update, remove } = useTarefaMutations();
+  const { add, toggle, update, remove, clearDone } = useTarefaMutations();
   const [editing, setEditing] = useState<Tarefa | null>(null);
+  const [busca, setBusca] = useState("");
+  const [filtro, setFiltro] = useState<FiltroStatus>("todas");
 
   const pendentes = tarefas.filter((t) => t.status === "Pendente").length;
   const concluidas = tarefas.length - pendentes;
+
+  const termo = busca.trim().toLowerCase();
+  const tarefasFiltradas = tarefas.filter((t) => {
+    if (filtro === "pendentes" && t.status !== "Pendente") return false;
+    if (filtro === "concluidas" && t.status !== "Concluída") return false;
+    if (
+      termo &&
+      !t.titulo.toLowerCase().includes(termo) &&
+      !t.descricao.toLowerCase().includes(termo)
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen">
@@ -129,14 +166,93 @@ function IndexContent() {
               </p>
             ) : null}
           </div>
-          <TaskList
-            tarefas={tarefas}
-            onToggle={(tarefa, status: TaskStatus) =>
-              toggle.mutateAsync({ id: tarefa.id, status })
-            }
-            onEdit={(tarefa) => setEditing(tarefa)}
-            onDelete={(tarefa) => remove.mutateAsync(tarefa.id)}
-          />
+
+          {tarefas.length > 0 ? (
+            <div className="mb-4 space-y-3">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar por título ou descrição..."
+                  aria-label="Buscar tarefas"
+                  className="pl-9"
+                />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex gap-1 rounded-lg bg-secondary p-1" role="group" aria-label="Filtrar por status">
+                  {FILTROS.map(({ valor, rotulo }) => (
+                    <button
+                      key={valor}
+                      type="button"
+                      onClick={() => setFiltro(valor)}
+                      aria-pressed={filtro === valor}
+                      className={
+                        filtro === valor
+                          ? "rounded-md bg-card px-3 py-1.5 text-sm font-medium shadow-sm"
+                          : "rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      }
+                    >
+                      {rotulo}
+                    </button>
+                  ))}
+                </div>
+                {concluidas > 0 ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button type="button" variant="outline" size="sm" disabled={clearDone.isPending}>
+                        <Eraser className="size-4" />
+                        Limpar concluídas
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Limpar tarefas concluídas?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Essa ação não pode ser desfeita. {concluidas}{" "}
+                          {concluidas === 1 ? "tarefa concluída será removida" : "tarefas concluídas serão removidas"}{" "}
+                          permanentemente.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={clearDone.isPending}>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={clearDone.isPending}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            void clearDone.mutateAsync();
+                          }}
+                        >
+                          {clearDone.isPending ? "Limpando..." : "Limpar"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {tarefas.length > 0 && tarefasFiltradas.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="py-10 text-center">
+                <p className="font-medium">Nenhuma tarefa encontrada.</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Tente outro termo de busca ou filtro.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <TaskList
+              tarefas={tarefasFiltradas}
+              onToggle={(tarefa, status: TaskStatus) =>
+                toggle.mutateAsync({ id: tarefa.id, status })
+              }
+              onEdit={(tarefa) => setEditing(tarefa)}
+              onDelete={(tarefa) => remove.mutateAsync(tarefa.id)}
+            />
+          )}
         </section>
       </main>
 

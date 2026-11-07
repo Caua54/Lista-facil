@@ -93,3 +93,13 @@ export async function deleteTarefa(id: number): Promise<void> {
     throw new Error("Não foi possível excluir a tarefa. Tente novamente.");
   }
 }
+
+export async function deleteTarefasConcluidas(): Promise<void> {
+  const { error } = await supabase
+    .from("tarefas")
+    .delete()
+    .eq("status", STATUS_CONCLUIDA);
+  if (error) {
+    throw new Error("Não foi possível limpar as tarefas concluídas. Tente novamente.");
+  }
+}

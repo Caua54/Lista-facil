@@ -10,6 +10,7 @@ import {
   STATUS_PENDENTE,
   createTarefa,
   deleteTarefa,
+  deleteTarefasConcluidas,
   fetchTarefas,
   updateTarefa,
   type TaskInput,
@@ -81,7 +82,16 @@ export function useTarefaMutations() {
     onError: (error) => toast.error(toMessage(error)),
   });
 
-  return { add, update, toggle, remove };
+  const clearDone = useMutation({
+    mutationFn: () => deleteTarefasConcluidas(),
+    onSuccess: () => {
+      toast.success("Tarefas concluídas removidas!");
+      return invalidate();
+    },
+    onError: (error) => toast.error(toMessage(error)),
+  });
+
+  return { add, update, toggle, remove, clearDone };
 }
 
 export { STATUS_CONCLUIDA, STATUS_PENDENTE };
